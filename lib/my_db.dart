@@ -51,11 +51,20 @@ class DBProvider {
     }, onCreate: (Database db, int version) async {
         await db.execute("CREATE TABLE IF NOT EXISTS $nameTable ("
           "id INTEGER PRIMARY KEY,"
+          "position REAL,"
           "text TEXT,"
           "allTaskCount INTEGER,"
           "completedTaskCount INTEGER," 
           "completedTaskProcent REAL)");
-      }
+      },/* onUpgrade: (Database db, int version) async {
+        await db.execute("CREATE TABLE IF NOT EXISTS $nameTable ("
+          "id INTEGER PRIMARY KEY,"
+          
+          "text TEXT,"
+          "allTaskCount INTEGER,"
+          "completedTaskCount INTEGER," 
+          "completedTaskProcent REAL)");
+      } */
     );
   }
 
@@ -80,12 +89,21 @@ class DBProvider {
     final ndb = await database;
     var table = await ndb.rawQuery("SELECT MAX(id)+1 as id FROM $nameTable");
     int id = table.first["id"];
+    //if(id != null) {
     print("my_db newTask() id == $id");
     var raw = await ndb.rawInsert(
-      "INSERT Into $nameTable (id,text,allTaskCount,completedTaskCount,completedTaskProcent)"
-      " VALUES (?,?,?,?,?)",
-      [id, newTask.text, newTask.allTaskCount, newTask.completedTaskCount, newTask.completedTaskProcent]);
+      "INSERT Into $nameTable (id,position,text,allTaskCount,completedTaskCount,completedTaskProcent)"
+      " VALUES (?,?,?,?,?,?)",
+      [id, newTask.position, newTask.text, newTask.allTaskCount, newTask.completedTaskCount, newTask.completedTaskProcent]);
     return raw;
+    /*} else {
+      print("my_db newTask() id == $id");
+    var raw = await ndb.rawInsert(
+      "INSERT Into $nameTable (id,position,text,allTaskCount,completedTaskCount,completedTaskProcent)"
+      " VALUES (?,?,?,?,?,?)",
+      [0, newTask.position, newTask.text, newTask.allTaskCount, newTask.completedTaskCount, newTask.completedTaskProcent]);
+    return raw;
+    }*/
   }
 
   updateTask(Task newTask) async {

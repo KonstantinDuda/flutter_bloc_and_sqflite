@@ -7,16 +7,25 @@ import 'task.dart';
 //import 'task_cubit.dart';
 
 class MyDialog extends StatelessWidget {
-  final textDialog = TextEditingController();
-  int id = 0;
+  //final textDialog = TextEditingController();
+  
+  final Task task;
+  MyDialog(this.task);
+  /*int id = 0;
 
   newId() {
     id++;
     return id;
-  }
+  }*/
 
   @override
   Widget build(BuildContext context) {
+    String newText = '';
+    if(task != null) {
+      newText = task.text;
+      print('Text in myDialog ${task.text.length}');
+    }
+    
     return Card(
       child: Row(
         children: <Widget>[
@@ -33,7 +42,8 @@ class MyDialog extends StatelessWidget {
               color: Theme.of(context).primaryColor,
               child:  
               TextField(
-                controller: textDialog,
+                onChanged: (value) => newText = value,
+                controller: TextEditingController(text: newText),
                 cursorColor: Colors.black,
                 expands: true,
                 style: Theme.of(context).textTheme.headline6,
@@ -64,13 +74,13 @@ class MyDialog extends StatelessWidget {
                 ),
                 onTap: () {
                   print("Go to the Root Page");
-                  BlocProvider.of<TaskBloc>(context).add(TaskAddedEvent(textDialog.text));
-                  //context.read<TaskBloc>().add(TaskAddedEvent(Task.newTask(textDialog.text, newId())));
-                  //context.read<TaskBloc>().add(TaskEvent(Events.newTask, text: textDialog.text));
-                  //BlocProvider.of<TaskBloc>(context).add(TaskEvent(Events.addTask , text: textDialog.text));
-                  //context.read<TaskCubit>().addTask(textDialog.text);
-                  BlocProvider.of<ProviderBloc>(context).add(ProviderEvent.rootPage);
-                  
+                  if(task == null) {
+                    BlocProvider.of<TaskBloc>(context).add(TaskAddedEvent(newText));
+                    BlocProvider.of<ProviderBloc>(context).add(RootEvent());
+                  } else {
+                    BlocProvider.of<TaskBloc>(context).add(TaskUpdateEvent(task.id, 0.0, newText));
+                    BlocProvider.of<ProviderBloc>(context).add(UpdateEvent(task));
+                  }
                 },
               ),
               Divider(height: 5.0,),
@@ -91,7 +101,7 @@ class MyDialog extends StatelessWidget {
                   ),
                 ),
                 onTap: () {
-                  BlocProvider.of<ProviderBloc>(context).add(ProviderEvent.rootPage);
+                  BlocProvider.of<ProviderBloc>(context).add(RootEvent());
                 },
               ),
             ],

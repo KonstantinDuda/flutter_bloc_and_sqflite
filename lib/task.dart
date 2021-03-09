@@ -1,5 +1,6 @@
 class Task {
   int id;
+  double position;
   String text;
   int allTaskCount;
   int completedTaskCount;
@@ -7,7 +8,7 @@ class Task {
   //double widthContainer;
   //double heightContainer;
 
-  Task({this.text, this.id, this.allTaskCount, this.completedTaskCount, this.completedTaskProcent});
+  Task({this.text, this.id, this.position, this.allTaskCount, this.completedTaskCount, this.completedTaskProcent});
 
   /*Task.newTask(String text) {
     this.id = id;
@@ -25,6 +26,7 @@ class Task {
 
   factory Task.fromMap(Map<String, dynamic> json) => Task(
     id: json["id"],
+    position: json["position"],
     text: json["text"],
     allTaskCount: json["allTaskCount"],
     completedTaskCount: json["completedTaskCount"],
@@ -33,6 +35,7 @@ class Task {
 
   Map<String, dynamic> toMap() => {
     "id": id,
+    "position": position,
     "text": text,
     "allTaskCount": allTaskCount,
     "completedTaskCount": completedTaskCount,
