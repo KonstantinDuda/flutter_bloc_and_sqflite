@@ -206,7 +206,7 @@ class MyHomePage extends StatelessWidget {
                                 child: Text //('${items[index]}'),
                                     //('ggggggggggggg gggggggggggg gggggggggggguhuuuu gghhhhhhh ggggggggg gggggggggggg gggggggggggg gggggggggggguhuuuu gghhhhhhh ggggggggg gggggggggggg gggggggggggg gghhhhhhhhhhhh hhhhhh hhhhh hhhhhh ggggggggg gggggggggggg gggggggggggg gghhhhhhhhhhhh hhhhhh $MyDB',//[index]}',
                                     (
-                                  "${tasks[index].position}  ${tasks[index].text}",
+                                  "${tasks[index].text}",
                                   //DBController.db.dbController[index].text,
                                   //state.props[index].toString(),
                                   //'${state.props(index).text}' //TaskDB.db.getTask(index).text,   //MyDB.db.myDB[index].text,

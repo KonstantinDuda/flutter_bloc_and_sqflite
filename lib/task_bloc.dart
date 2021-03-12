@@ -3,7 +3,7 @@ import 'package:equatable/equatable.dart';
 import 'task.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'my_db.dart';
+//import 'my_db.dart';
 
 class TaskState extends Equatable {
   TaskState();
@@ -54,7 +54,7 @@ class TaskAddedEvent extends TaskEvent {
 // Событие обновления обьекта
 class TaskUpdateEvent extends TaskEvent {
   final int id;
-  final double newPosition;
+  final int newPosition;
   final String newText;
 
   TaskUpdateEvent(this.id, this.newPosition, this.newText);
@@ -116,7 +116,7 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
         print('list.isEmpty');
         task = new Task(
           id: 1,
-          position: 1.0,
+          position: 1,
           text: event.text,
           allTaskCount: 0,
           completedTaskCount: 0,
@@ -126,7 +126,7 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
           print('list.length > 0');
           task = new Task(
           id: list[list.length -1].id +1,
-          position: list.last.position +(1.0),
+          position: list.last.position +(1),
           text: event.text,
           allTaskCount: 0,
           completedTaskCount: 0,
@@ -153,7 +153,73 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
 
   Stream<TaskState> _taskUpdateToState(TaskUpdateEvent event) async* {
     // TODO не правильно расчитывает позицию
-    double pre = 0.0;
+
+    Task updateTask;
+    int updateTaskIndex;
+    
+    for(int i = 0; i < list.length; i++) {
+      if(list[i].id == event.id) {
+        print("if(list[i].id == event.id)");
+        updateTask = list[i];
+        updateTaskIndex = i;
+      }
+    }
+    if(event.newPosition == 0){
+      print("if(event.newPosition == 0)");
+      updateTask.text = event.newText;
+    } else if(event.newPosition > 0) {
+      print("if(event.newPosition > 0)");
+      if((list[updateTaskIndex].position + event.newPosition) >= list.length) {
+        print("if((list[updateTaskIndex].position + event.newPosition) >= list.length)");
+        for(int i = 0; i < list.length; i++) {
+          if(list[i].position > updateTask.position) {
+            list[i].position -= 1;
+          }
+        }
+        updateTask.position = list.length;
+      } else {
+        print("else");
+      for(int i = 0; i < list.length; i++) {
+          if(list[i].position > updateTask.position && list[i].position <= 
+          (updateTask.position + event.newPosition)) {
+            print("if(list[i].position > updateTask.position && list[i].position < (updateTask.position + event.newPosition))");
+            list[i].position -= 1;
+          }
+        }
+      updateTask.position += event.newPosition;
+      }
+    } else if(event.newPosition < 0) {
+      print("if(event.newPosition < 0)");
+      if((list[updateTaskIndex].position + event.newPosition) <= 1) {
+        print("if((list[updateTaskIndex].position - event.newPosition) < 1)");
+        for(int i = 0; i < list.length; i++) {
+          if(list[i].position < updateTask.position) {
+            list[i].position += 1;
+          }
+        }
+        updateTask.position = 1;
+      } else {
+      for(int i = 0; i < list.length; i++) {
+        if(list[i].position < updateTask.position && list[i].position >= 
+          (updateTask.position + event.newPosition)) {
+            print("if(list[i].position < updateTask.position && list[i].position > (updateTask.position + event.newPosition))");
+            list[i].position += 1;
+          }
+      }
+      updateTask.position += event.newPosition;
+    }
+    }
+    list[updateTaskIndex] = updateTask;
+
+    list.sort((a,b) => a.position.compareTo(b.position));
+    for(Task element in list) {
+      print("element = ${element.toMap()}");
+    }
+    yield TaskLoadInProgressState();
+    yield TaskLoadSuccessState(list);
+
+
+    /*double pre = 0.0;
     double post = 0.0;
     Task updateTask;
     int updateTaskIndex;
@@ -316,7 +382,7 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
     list.sort((a,b) => a.position.compareTo(b.position));*/
     for(Task element in list) {
       print("element = ${element.toMap()}");
-    }
+    }*/
     /*yield TaskLoadInProgressState();
     yield TaskLoadSuccessState(list);*/
     

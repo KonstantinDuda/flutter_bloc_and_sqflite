@@ -78,7 +78,7 @@ class MyDialog extends StatelessWidget {
                     BlocProvider.of<TaskBloc>(context).add(TaskAddedEvent(newText));
                     BlocProvider.of<ProviderBloc>(context).add(RootEvent());
                   } else {
-                    BlocProvider.of<TaskBloc>(context).add(TaskUpdateEvent(task.id, 0.0, newText));
+                    BlocProvider.of<TaskBloc>(context).add(TaskUpdateEvent(task.id, 0, newText));
                     BlocProvider.of<ProviderBloc>(context).add(UpdateEvent(task));
                   }
                 },

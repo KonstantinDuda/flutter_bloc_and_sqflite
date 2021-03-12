@@ -37,7 +37,7 @@ class UpdatePage extends StatelessWidget {
         //print('tasks = [] because state is not a TaskLoadSuccessState');
         tasks = [];
       }
-      print('tasks == $tasks');
+      //print('tasks == $tasks');
       return Scaffold(
         appBar: AppBar(
           title: Text('Update ${updateTask.text}'),
@@ -49,9 +49,9 @@ class UpdatePage extends StatelessWidget {
               print("ListView.builder");
               return GestureDetector(
                 onTap: () {
-                  // TODO Нужно запустить эту страницу с таской которую тапнули
                   print(tasks[index].id);
                   print(tasks[index].text);
+                  BlocProvider.of<ProviderBloc>(context).add(UpdateEvent(tasks[index]));
                 },
                 onLongPress: () {
                   print("Long press on ${tasks[index].id}");
@@ -85,8 +85,7 @@ class UpdatePage extends StatelessWidget {
                                     //('ggggggggggggg gggggggggggg gggggggggggguhuuuu gghhhhhhh ggggggggg gggggggggggg gggggggggggg gggggggggggguhuuuu gghhhhhhh ggggggggg gggggggggggg gggggggggggg gghhhhhhhhhhhh hhhhhh hhhhh hhhhhh ggggggggg gggggggggggg gggggggggggg gghhhhhhhhhhhh hhhhhh $MyDB',//[index]}',
                                     (
                                   //"$index",
-                                  tasks[index]
-                                      .text, //TaskDB.db.getTask(index).text,   //MyDB.db.myDB[index].text,
+                                  " ${tasks[index].text}", //TaskDB.db.getTask(index).text,   //MyDB.db.myDB[index].text,
                                   style: tasks[index] == updateTask
                                       ? TextStyle(fontWeight: FontWeight.bold)
                                       : TextStyle(
@@ -143,7 +142,7 @@ class UpdatePage extends StatelessWidget {
                     //newId(1);
                     print('press Bottom');
                     BlocProvider.of<TaskBloc>(context)
-                        .add(TaskUpdateEvent(updateTask.id, 1.0, updateTask.text));
+                        .add(TaskUpdateEvent(updateTask.id, 1, updateTask.text));
                   },
                   child: Icon(Icons.arrow_downward),
                   backgroundColor: Colors.blue,
@@ -156,7 +155,7 @@ class UpdatePage extends StatelessWidget {
                     print('press Up');
                     //BlocProvider.of<TaskBloc>(context).add(TaskEvent(Events.updateTask, oldId: updateIndex, newId: updateIndex -1));
                     BlocProvider.of<TaskBloc>(context)
-                        .add(TaskUpdateEvent(updateTask.id, -1.0, updateTask.text));
+                        .add(TaskUpdateEvent(updateTask.id, -1, updateTask.text));
                     //BlocProvider.of<ProviderBloc>(context).add(ProviderEvent.dialog);
                   },
                   child: Icon(Icons.arrow_upward),

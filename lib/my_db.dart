@@ -51,7 +51,7 @@ class DBProvider {
     }, onCreate: (Database db, int version) async {
         await db.execute("CREATE TABLE IF NOT EXISTS $nameTable ("
           "id INTEGER PRIMARY KEY,"
-          "position REAL,"
+          "position INTEGER,"
           "text TEXT,"
           "allTaskCount INTEGER,"
           "completedTaskCount INTEGER," 

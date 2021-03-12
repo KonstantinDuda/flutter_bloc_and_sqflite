@@ -1,6 +1,6 @@
 class Task {
   int id;
-  double position;
+  int position;
   String text;
   int allTaskCount;
   int completedTaskCount;
