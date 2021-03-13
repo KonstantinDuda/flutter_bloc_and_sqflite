@@ -3,7 +3,7 @@ import 'package:equatable/equatable.dart';
 import 'task.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-//import 'my_db.dart';
+import 'my_db.dart';
 
 class TaskState extends Equatable {
   TaskState();
@@ -76,9 +76,9 @@ class TaskDeletedEvent extends TaskEvent {
 class TaskBloc extends Bloc<TaskEvent, TaskState> {
   
   List<Task> list = [];
-  //final database = new DBProvider();
+  final _database = new DBProvider();
 
-  TaskBloc({/*this.db*/this.list}) : super(TaskLoadInProgressState());
+  TaskBloc({this.list}) : super(TaskLoadInProgressState());
 
   @override 
   Stream<TaskState> mapEventToState(TaskEvent event) async* {
@@ -95,11 +95,12 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
 
   Stream<TaskState> _taskLoadedToState() async* {
     try {
-      //final dbList = await database.getAllTasks();
-      final dbList = list;
-      print('_taskLoadedToState(); dbList == $dbList');
-      list = dbList;
-      yield TaskLoadSuccessState(list);
+      final newList = await _database.getAllTasks();
+      //final dbList = list;
+      print('_taskLoadedToState(); dbList == $newList');
+      
+      yield TaskLoadSuccessState(newList);
+      list = newList;
     } catch (_) {
       yield TaskLoadFailureState();
     }
@@ -133,26 +134,20 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
           completedTaskProcent: 1.0,
         );
       }
-      print("task.position == ${task.position}");
-      //await database.newTask(task);
-      //final dbList = await database.getAllTasks();
-      //list = dbList;
-      list.add(task);
-      list.sort((a,b) => a.position.compareTo(b.position));
-      print('_taskAddedToState(); new List == $list');
-      yield TaskLoadSuccessState(list);
-      //final List<Task> updateTask = (state as TaskLoadSuccessState).tasks
-        //..add(task);
-      //list.add(event.task);
+      await _database.newTask(task);
+      final newList = await _database.getAllTasks();
       
-      //yield TaskLoadSuccessState(updateTask);
-      //await db.newTask(event.task);
-      
+      //list.add(task);
+      newList.sort((a,b) => a.position.compareTo(b.position));
+      for(Task element in newList) {
+      print("element = ${element.toMap()}");
+    }
+      yield TaskLoadSuccessState(newList);
+      list = newList;
     }
   }
 
   Stream<TaskState> _taskUpdateToState(TaskUpdateEvent event) async* {
-    // TODO не правильно расчитывает позицию
 
     Task updateTask;
     int updateTaskIndex;
@@ -174,6 +169,8 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
         for(int i = 0; i < list.length; i++) {
           if(list[i].position > updateTask.position) {
             list[i].position -= 1;
+            final task = list[i];
+            _database.updateTask(task);
           }
         }
         updateTask.position = list.length;
@@ -184,6 +181,8 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
           (updateTask.position + event.newPosition)) {
             print("if(list[i].position > updateTask.position && list[i].position < (updateTask.position + event.newPosition))");
             list[i].position -= 1;
+            final task = list[i];
+            _database.updateTask(task);
           }
         }
       updateTask.position += event.newPosition;
@@ -195,6 +194,8 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
         for(int i = 0; i < list.length; i++) {
           if(list[i].position < updateTask.position) {
             list[i].position += 1;
+            final task = list[i];
+            _database.updateTask(task);
           }
         }
         updateTask.position = 1;
@@ -204,229 +205,69 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
           (updateTask.position + event.newPosition)) {
             print("if(list[i].position < updateTask.position && list[i].position > (updateTask.position + event.newPosition))");
             list[i].position += 1;
+            final task = list[i];
+            _database.updateTask(task);
           }
       }
       updateTask.position += event.newPosition;
     }
     }
-    list[updateTaskIndex] = updateTask;
+    //list[updateTaskIndex] = updateTask;
 
-    list.sort((a,b) => a.position.compareTo(b.position));
-    for(Task element in list) {
+    await _database.updateTask(updateTask);
+
+    final newList = await _database.getAllTasks();
+    newList.sort((a,b) => a.position.compareTo(b.position));
+    for(Task element in newList) {
       print("element = ${element.toMap()}");
     }
     yield TaskLoadInProgressState();
-    yield TaskLoadSuccessState(list);
-
-
-    /*double pre = 0.0;
-    double post = 0.0;
-    Task updateTask;
-    int updateTaskIndex;
-
-    if(event.newPosition == 0.0) {
-      print("event newPosition == 0.0");
-      for(int i = 0; i < list.length; i++) {
-        if(event.id == list[i].id) {
-          list[i].text = event.newText;
-          for(Task element in list) {
-            print(element.toMap());
-          }
-          yield TaskLoadSuccessState(list);
-        }
-      }
-
-    } else if(event.newPosition == -1.0) {
-      print("event newPosition == -1.0");
-      for(int i = 0; i < list.length; i++) {
-        if(list[i].id == event.id) {
-          updateTask = list[i];
-          updateTaskIndex = i;
-        }
-      }
-      print("updateTask == ${updateTask.toMap()}");
-      print("updateTaskIndex == $updateTaskIndex");
-      if(list.length <= 1 || updateTask == list.first) {
-        print("list.length <= 1 || updateTask == list.first");
-        yield TaskLoadInProgressState();
-        yield TaskLoadSuccessState(list);
-      } else if(list.length == 2) {
-        print("list.length == 2");
-        if(updateTaskIndex == 0) {
-          print("updateTaskIndex == 0");
-          yield TaskLoadInProgressState();
-          yield TaskLoadSuccessState(list);
-        } else {
-          print("else updateTaskIndex == 0");
-          updateTask.position = list[0].position / 2;
-          list[updateTaskIndex] = updateTask;
-          list.sort((a,b) => a.position.compareTo(b.position));
-          yield TaskLoadInProgressState();
-          yield TaskLoadSuccessState(list);
-        }
-      } else if(updateTask == list[1]) {
-        print("updateTask == list[1]");
-        updateTask.position = list[0].position / 2;
-        list[updateTaskIndex] = updateTask;
-        list.sort((a,b) => a.position.compareTo(b.position));
-        yield TaskLoadInProgressState();
-        yield TaskLoadSuccessState(list);
-      } else {
-        print("else list.length == 2");
-        post = list[updateTaskIndex - 1].position;
-        pre = list[updateTaskIndex - 2].position;
-
-        print("pre == $pre");
-        print("post == $post");
-    
-        updateTask.position = (post + pre) / 2;
-        list[updateTaskIndex] = updateTask;
-
-        list.sort((a,b) => a.position.compareTo(b.position));
-        yield TaskLoadInProgressState();
-        yield TaskLoadSuccessState(list);
-      }
-
-
-      /*for(Task element in list) {
-        if(element.position < updateTask.position && element.position > post) {
-          post = element.position;
-        } else {
-          post = updateTask.position;
-        }
-      }
-      for(Task element in list) {
-        if(element.position < post && element.position > pre) {
-          pre = element.position;
-        } else {
-          post = updateTask.position;
-        }
-      }*/
-    } else if(event.newPosition == 1.0) {
-      print("event newPosition == +1.0");
-      for(int i = 0; i < list.length; i++) {
-        if(list[i].id == event.id) {
-          updateTask = list[i];
-          updateTaskIndex = i;
-        }
-      }
-      print("updateTask == ${updateTask.toMap()}");
-      print("updateTaskIndex == $updateTaskIndex");
-      if(list.length <= 1 || updateTask == list.last) {
-        print("list.length <= 1 || updateTask == list.last");
-        yield TaskLoadInProgressState();
-        yield TaskLoadSuccessState(list);
-      } else if(list.length == 2) {
-        print("list.length == 2");
-        if(updateTaskIndex > 0) {
-          print("updateTaskIndex > 0");
-          yield TaskLoadInProgressState();
-          yield TaskLoadSuccessState(list);
-        } else {
-          print("else updateTaskIndex > 0");
-          updateTask.position = list.last.position + 1.0;
-          list[updateTaskIndex] = updateTask;
-          list.sort((a,b) => a.position.compareTo(b.position));
-          yield TaskLoadInProgressState();
-          yield TaskLoadSuccessState(list);
-        }
-        updateTask.position = list[list.length - 1].position + 1;
-        list.sort((a,b) => a.position.compareTo(b.position));
-        yield TaskLoadInProgressState();
-        yield TaskLoadSuccessState(list);
-      } else if(updateTask == list[list.length - 2]) {
-        print("updateTask == ${list[list.length - 2].toMap()}");
-        updateTask.position = list[list.length -1].position + 1.0;
-        list[updateTaskIndex] = updateTask;
-        list.sort((a,b) => a.position.compareTo(b.position));
-        yield TaskLoadInProgressState();
-        yield TaskLoadSuccessState(list);
-      } else {
-        print("else updateTask == list[list.length - 2]");
-        pre = list[updateTaskIndex + 1].position;
-        post = list[updateTaskIndex + 2].position;
-
-        print("pre == $pre");
-        print("post == $post");
-    
-        updateTask.position = (post + pre) / 2;
-        list[updateTaskIndex] = updateTask;
-
-        list.sort((a,b) => a.position.compareTo(b.position));
-        yield TaskLoadInProgressState();
-        yield TaskLoadSuccessState(list);
-      }
-
-      /*for(Task element in list) {
-        pre = list.last.position;
-        if(element.position > updateTask.position && element.position < pre) {
-          pre = element.position;
-        } else {
-          pre = updateTask.position;
-        }
-      }
-      for(Task element in list) {
-        if(element.position > updateTask.position && element.position > post) {
-          post = element.position;
-        } else {
-          post = updateTask.position;
-        }
-      }*/
-    }
-
-    /*print("pre == $pre");
-    print("post == $post");
-    
-    updateTask.position = (post + pre) / 2;
-    list[updateTaskIndex] = updateTask;
-    list.sort((a,b) => a.position.compareTo(b.position));*/
-    for(Task element in list) {
-      print("element = ${element.toMap()}");
-    }*/
-    /*yield TaskLoadInProgressState();
-    yield TaskLoadSuccessState(list);*/
-    
+    yield TaskLoadSuccessState(newList);
+    list = newList;
   }
 
   Stream<TaskState> _taskDeleteToState(TaskDeletedEvent event) async* {
     if(state is TaskLoadSuccessState) {
       print("_taskDeleteToState; state is TaskLoadSuccessState");
+      /*  Debug version
       final listNew = (state as TaskLoadSuccessState).tasks;
       for (var i = 0; i < listNew.length; i++) {
       if(listNew[i].id == event.id) {
         listNew.removeAt(i);
         print("listNew[i].id == event.id");
       }
+    }*/
+    Task updateTask;
+    int updateTaskIndex;
+    
+    for(int i = 0; i < list.length; i++) {
+      if(list[i].id == event.id) {
+        print("if(list[i].id == event.id)");
+        updateTask = list[i];
+        updateTaskIndex = i;
+      }
     }
+    for(int i = 0; i < list.length; i++){
+      if(list[i].position > updateTask.position) {
+        final newTask = list[i];
+        newTask.position -= 1;
+        //print("${newTask.toMap()}");
+        await _database.updateTask(newTask);
+      }
+    }
+
+    // Mobile version
+    await _database.deleteTask(event.id);
+    final listNew = await _database.getAllTasks();
+    // It Mobile and Debug version
     listNew.sort((a,b) => a.position.compareTo(b.position));
-    for(Task element in list) {
+    for(Task element in listNew) {
       print("new element == ${element.toMap()}");
     }
-    //print('_taskDeleteToState(); new List[i] == $listNew');
+
     yield TaskLoadInProgressState();
     yield TaskLoadSuccessState(listNew);
     list = listNew;
     }
-    /*var newList = list;
-    for (var i = 0; i < newList.length; i++) {
-      if(newList[i].id == event.id) {
-        newList.removeAt(i);
-      }
-    }
-    newList.sort((a,b) => a.position.compareTo(b.position));
-    
-    print('_taskAddedToState(); new List == $list');
-    yield TaskLoadSuccessState(newList);
-    list = newList;*/
-
-    /*if(state is TaskLoadSuccessState) {
-      final updateTasks = (state as TaskLoadSuccessState)
-        .tasks
-        .where((element) => element.id != event.task.id)
-        .toList();
-      yield TaskLoadSuccessState(updateTasks);
-      // await db.deleteTask(event.task.id);
-      //list.remove(list[event.task.id]);
-    }*/
   }
 }
