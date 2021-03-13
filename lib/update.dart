@@ -46,7 +46,8 @@ class UpdatePage extends StatelessWidget {
             itemCount:
                 tasks.length, //.db.getAllTask().length,//MyDB.db.myDB.length,
             itemBuilder: (context, index) {
-              print("ListView.builder");
+              print("${tasks[index].toMap()} == ${updateTask.toMap()}  ?");
+              //print("ListView.builder");
               return GestureDetector(
                 onTap: () {
                   print(tasks[index].id);
@@ -63,7 +64,7 @@ class UpdatePage extends StatelessWidget {
                   margin: EdgeInsets.fromLTRB(20.0, 5.0, 10.0, 5.0),
                   decoration: BoxDecoration(
                     border: Border.all(
-                      color: tasks[index] == updateTask
+                      color: tasks[index].id == updateTask.id
                           ? Colors.orange
                           : Colors.blue,
                       width: 1.5,
@@ -85,8 +86,9 @@ class UpdatePage extends StatelessWidget {
                                     //('ggggggggggggg gggggggggggg gggggggggggguhuuuu gghhhhhhh ggggggggg gggggggggggg gggggggggggg gggggggggggguhuuuu gghhhhhhh ggggggggg gggggggggggg gggggggggggg gghhhhhhhhhhhh hhhhhh hhhhh hhhhhh ggggggggg gggggggggggg gggggggggggg gghhhhhhhhhhhh hhhhhh $MyDB',//[index]}',
                                     (
                                   //"$index",
-                                  " ${tasks[index].text}", //TaskDB.db.getTask(index).text,   //MyDB.db.myDB[index].text,
-                                  style: tasks[index] == updateTask
+                                  " ${tasks[index].text}",
+                                   //TaskDB.db.getTask(index).text,   //MyDB.db.myDB[index].text,
+                                  style: tasks[index].id == updateTask.id
                                       ? TextStyle(fontWeight: FontWeight.bold)
                                       : TextStyle(
                                           fontWeight: FontWeight.normal),
@@ -118,23 +120,37 @@ class UpdatePage extends StatelessWidget {
               );
             }),
         floatingActionButton: Container(
-          child: Row(
+          // При перемещении на телефоне активный обьект перерисовывается в синий цвет...
+          child: Column(  //Row(
             mainAxisAlignment: MainAxisAlignment.end,
-            //crossAxisAlignment: CrossAxisAlignment.baseline,
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: <Widget>[
               Container(
-                margin: EdgeInsets.fromLTRB(10.0, 5.0, 10.0, 5.0),
-                child: FloatingActionButton.extended(
+                margin: EdgeInsets.fromLTRB(10.0, 5.0, 0.0, 5.0),
+                child: FloatingActionButton(
                   onPressed: () {
-                    BlocProvider.of<ProviderBloc>(context).add(DialogEvent(updateTask));
+                    BlocProvider.of<ProviderBloc>(context).add(RootEvent());
                   },
-                  label: Text('Rewrite'),
-                  icon: Icon(Icons.create),
+                  child: Icon(Icons.check_outlined),
                   backgroundColor: Colors.blue,
                 ),
               ),
               Container(
-                margin: EdgeInsets.fromLTRB(10.0, 5.0, 10.0, 5.0),
+                margin: EdgeInsets.fromLTRB(10.0, 5.0, 0.0, 5.0),
+                child: FloatingActionButton(
+                  onPressed: () {
+                    print('press Up');
+                    //BlocProvider.of<TaskBloc>(context).add(TaskEvent(Events.updateTask, oldId: updateIndex, newId: updateIndex -1));
+                    BlocProvider.of<TaskBloc>(context)
+                        .add(TaskUpdateEvent(updateTask.id, -1, updateTask.text));
+                    //BlocProvider.of<ProviderBloc>(context).add(UpdateEvent(updateTask));
+                  },
+                  child: Icon(Icons.arrow_upward),
+                  backgroundColor: Colors.blue,
+                ),
+              ),
+              Container(
+                margin: EdgeInsets.fromLTRB(10.0, 5.0, 0.0, 5.0),
                 child: FloatingActionButton(
                   onPressed: () {
                     //BlocProvider.of<ProviderBloc>(context).add(ProviderEvent.dialog);
@@ -149,26 +165,13 @@ class UpdatePage extends StatelessWidget {
                 ),
               ),
               Container(
-                margin: EdgeInsets.fromLTRB(10.0, 5.0, 10.0, 5.0),
-                child: FloatingActionButton(
+                margin: EdgeInsets.fromLTRB(10.0, 5.0, 0.0, 5.0),
+                child: FloatingActionButton.extended(
                   onPressed: () {
-                    print('press Up');
-                    //BlocProvider.of<TaskBloc>(context).add(TaskEvent(Events.updateTask, oldId: updateIndex, newId: updateIndex -1));
-                    BlocProvider.of<TaskBloc>(context)
-                        .add(TaskUpdateEvent(updateTask.id, -1, updateTask.text));
-                    //BlocProvider.of<ProviderBloc>(context).add(ProviderEvent.dialog);
+                    BlocProvider.of<ProviderBloc>(context).add(DialogEvent(updateTask));
                   },
-                  child: Icon(Icons.arrow_upward),
-                  backgroundColor: Colors.blue,
-                ),
-              ),
-              Container(
-                margin: EdgeInsets.fromLTRB(10.0, 5.0, 10.0, 5.0),
-                child: FloatingActionButton(
-                  onPressed: () {
-                    BlocProvider.of<ProviderBloc>(context).add(RootEvent());
-                  },
-                  child: Icon(Icons.check_outlined),
+                  label: Text('Rewrite'),
+                  icon: Icon(Icons.create),
                   backgroundColor: Colors.blue,
                 ),
               ),
